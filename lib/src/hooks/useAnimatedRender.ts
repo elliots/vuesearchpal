@@ -1,39 +1,36 @@
-import { useEffect, useRef, useState } from "react";
+import { ref, watch } from "vue";
 
-export const useAnimatedRender: (
+export function useAnimatedRender(
   visible?: boolean | null | undefined,
   duration?: number | null
-) => [render: boolean, show: boolean, transitioning: boolean] = (
-  visible,
-  duration
-) => {
-  const [show, setShow] = useState(false);
-  const [render, setRender] = useState(visible === true ? true : false);
+) {
+  const show = ref(false);
+  const render = ref(visible === true ? true : false);
 
-  const delay = useRef(duration || 150);
-  useEffect(() => {
-    delay.current = duration || 150;
-  }, [duration]);
+  const delay = ref(duration || 150);
+  watch(() => duration, (newDuration) => {
+    delay.value = newDuration || 150;
+  });
 
-  useEffect(() => {
-    if (visible) {
-      setRender(true);
-      const timer = setTimeout(() => setShow(true), 50);
+  watch(() => visible, (newVisible) => {
+    if (newVisible) {
+      render.value = true;
+      const timer = setTimeout(() => show.value = true, 50);
       return () => clearTimeout(timer);
     } else {
-      setShow(false);
-      const timer = setTimeout(() => setRender(false), delay.current);
+      show.value = false;
+      const timer = setTimeout(() => render.value = false, delay.value);
       return () => clearTimeout(timer);
     }
-  }, [visible]);
+  });
 
-  const [transitioning, setTransitioning] = useState(false);
+  const transitioning = ref(false);
 
-  useEffect(() => {
-    setTransitioning(true);
-    const timer = setTimeout(() => setTransitioning(false), delay.current);
+  watch(show, () => {
+    transitioning.value = true;
+    const timer = setTimeout(() => transitioning.value = false, delay.value);
     return () => clearTimeout(timer);
-  }, [show]);
+  });
 
-  return [render, show, transitioning];
-};
+  return { render, show, transitioning };
+}
