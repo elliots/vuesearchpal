@@ -1,37 +1,40 @@
+import { defineComponent, computed } from 'vue';
 import { useSearch } from "../../../../context";
-import React, { useMemo } from "react";
 import { Content, Text } from "./Suggestion.styled";
 
-export const Suggestion = () => {
-  const { suggestion, query } = useSearch();
+export default defineComponent({
+  setup() {
+    const { suggestion, query } = useSearch();
 
-  const suggest = useMemo(() => {
-    if (suggestion) {
-      const label = suggestion.label,
-        query_ = query.toLowerCase(),
-        label_ = label.toLowerCase();
+    const suggest = computed(() => {
+      if (suggestion.value) {
+        const label = suggestion.value.label;
+        const query_ = query.value.toLowerCase();
+        const label_ = label.toLowerCase();
 
-      if (label_.includes(query_) && label_.indexOf(query_) === 0) {
-        if (query.length === label.length) {
-          return null;
+        if (label_.includes(query_) && label_.indexOf(query_) === 0) {
+          if (query.value.length === label.length) {
+            return null;
+          }
+          return [query.value, label.slice(query.value.length)];
         }
-        return [query, label.slice(query.length)];
       }
-    }
-    return null;
-  }, [suggestion, query]);
+      return null;
+    });
 
-  if (suggest) {
-    return (
-      <Content aria-hidden>
-        {suggest.map((str, i) => (
-          <Text visible={i > 0} key={`${i}-${str}`}>
-            {str}
-          </Text>
-        ))}
-      </Content>
-    );
+    return () => {
+      if (suggest.value) {
+        return (
+          <Content aria-hidden>
+            {suggest.value.map((str, i) => (
+              <Text visible={i > 0} key={`${i}-${str}`}>
+                {str}
+              </Text>
+            ))}
+          </Content>
+        );
+      }
+      return null;
+    };
   }
-
-  return null;
-};
+});
