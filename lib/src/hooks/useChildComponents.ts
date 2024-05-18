@@ -1,50 +1,42 @@
-import {
-  ReactNode,
-  Children,
-  useCallback,
-  ReactElement,
-  isValidElement,
-  createElement,
-  FunctionComponent,
-  ComponentProps,
-} from "react";
+import { VNode, FunctionalComponent, h } from "vue";
 import { ec } from "../../utils";
 
-export const useChildComponents = <P extends {} = {}>(
-  children: ReactNode,
-  component: FunctionComponent<P>
-) => {
-  type Props = ComponentProps<typeof component>;
+export function useChildComponents<P extends {} = {}>(
+  children: VNode[],
+  component: FunctionalComponent<P>
+) {
+  type Props = P;
 
-  const getChildren = useCallback(() => {
-    const getChildrenArr = (
-      childElements: ReactNode,
-      arr: ReactElement<Props>[]
-    ) => {
-      const isComponent = (
-        obj: ReactElement<any>
-      ): obj is ReactElement<Props> => obj.type === component;
-      Children.forEach(childElements, (child) => {
-        if (isValidElement(child)) {
-          if (isComponent(child)) arr.push(child);
-          if (hasChildren(child)) getChildrenArr(child.props.children, arr);
-        }
+  function getChildren() {
+    function getChildrenArr(
+      childElements: VNode[],
+      arr: VNode<Props>[]
+    ) {
+      function isComponent(
+        obj: VNode
+      ): obj is VNode<Props> {
+        return obj.type === component;
+      }
+      childElements.forEach((child) => {
+        if (isComponent(child)) arr.push(child);
+        if (hasChildren(child)) getChildrenArr(child.children as VNode[], arr);
       });
-    };
-    const results: ReactElement<Props>[] = [];
+    }
+    const results: VNode<Props>[] = [];
     getChildrenArr(children, results);
     return results.map((el, i) =>
-      createElement(component, {
+      h(component, {
         ...(el.props ? el.props : ({} as Props)),
         key: ec(el.key, i + 1),
       })
     );
-  }, [component, children]);
+  }
 
   return getChildren();
-};
+}
 
-const hasChildren = (
-  obj: ReactElement<any>
-): obj is ReactElement<{ children?: ReactNode }> =>
-  obj.props?.children ? true : false;
+function hasChildren(
+  obj: VNode
+): obj is VNode<{ children?: VNode[] }> {
+  return !!(obj.children && obj.children.length);
+}

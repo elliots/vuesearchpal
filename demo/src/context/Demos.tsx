@@ -1,11 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  PropsWithChildren,
-} from "react";
+import { provide, inject, ref } from 'vue';
 
-export type DemoId = "general" | "button" | "link";
+export type DemoId = 'general' | 'button' | 'link';
 
 export interface DemoValues {
   demo: DemoId | null;
@@ -13,38 +8,34 @@ export interface DemoValues {
   closeDemo: () => void;
 }
 
-const Demos = createContext<DemoValues>({
-  demo: null,
-  openDemo: () => {},
-  closeDemo: () => {},
-} as DemoValues);
+const DemosSymbol = Symbol();
 
-export function useDemos() {
-  return useContext(Demos);
+export function provideDemos() {
+  const demo = ref<DemoId | null>(null);
+
+  function openDemo(id: DemoId) {
+    if (demo.value !== id) {
+      demo.value = id;
+    }
+  }
+
+  function closeDemo() {
+    demo.value = null;  
+  }
+
+  provide(DemosSymbol, {
+    demo,
+    openDemo,
+    closeDemo
+  });
 }
 
-export function DemosProvider({ children }: PropsWithChildren<{}>) {
-  const [demo, setDemo] = useState<DemoId | null>(null);
+export function useDemos() {
+  const context = inject<DemoValues>(DemosSymbol);
 
-  const openDemo = (id: DemoId) =>
-    setDemo((current) => {
-      if (current !== id) {
-        return id;
-      }
-      return current;
-    });
+  if (!context) {
+    throw new Error('useDemos must be used within a DemosProvider');
+  }
 
-  const closeDemo = () => setDemo(null);
-
-  return (
-    <Demos.Provider
-      value={{
-        demo,
-        openDemo,
-        closeDemo,
-      }}
-    >
-      {children}
-    </Demos.Provider>
-  );
+  return context;
 }

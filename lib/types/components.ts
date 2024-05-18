@@ -1,32 +1,32 @@
-import { FunctionComponent, PropsWithChildren, ReactElement } from "react";
+import { FunctionalComponent, AllowedComponentProps, VNode } from "vue";
 import { OptionProps, Renderable } from "./gen";
 
-export type LinkProps = PropsWithChildren<{
+export type LinkProps = AllowedComponentProps & {
   href: string;
   target?: string;
-}>;
-export type LinkComponent = FunctionComponent<LinkProps>;
+};
+export type LinkComponent = FunctionalComponent<LinkProps>;
 
 export type ArrowProps = {
   active: boolean;
   hovered: boolean;
   focused: boolean;
 };
-export type ArrowComponent = FunctionComponent<ArrowProps>;
+export type ArrowComponent = FunctionalComponent<ArrowProps>;
 
 export type MediaProps = Pick<OptionProps, "img" | "label"> & {
   active: boolean;
   hovered: boolean;
   focused: boolean;
 };
-export type MediaComponent = FunctionComponent<MediaProps>;
+export type MediaComponent = FunctionalComponent<MediaProps>;
 
 export type PreviewProps = Pick<OptionProps, "label" | "sublabel" | "img"> & {
-  media?: ReactElement<any, any>;
+  media?: VNode;
 };
-export type PreviewComponent = FunctionComponent<PreviewProps>;
+export type PreviewComponent = FunctionalComponent<PreviewProps>;
 
 export type ButtonProps = Pick<OptionProps, "onClick" | "label"> & {
   cta: Renderable;
 };
-export type ButtonComponent = FunctionComponent<ButtonProps>;
+export type ButtonComponent = FunctionalComponent<ButtonProps>;
