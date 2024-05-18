@@ -102,52 +102,68 @@ Simply import the Search & Option components. Add a few required props to the Se
 ```tsx
 import { Search, Option, Detail } from "searchpal";
 
-const UsersSearch = ({ users, session }) => {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <button onClick={() => setOpen(true)}>Search for a user</button>
-      <Search
-        label="Search for a user..."
-        open={open}
-        onClose={() => setOpen(false)}
-        link={({ href, children }) => <a href={href}>{children}</a>}
+<template>
+  <div>
+    <button @click="open = true">Search for a user</button>
+    <Search
+      label="Search for a user..."
+      :open="open"
+      @close="open = false"
+      :link="link"
+    >
+      <Option
+        v-for="user in users"
+        :key="user.id"
+        :label="user.name"
+        :sublabel="user.email"
+        :img="{ src: user.avatar, alt: `${user.name} profile picture` }"
+        :href="`/users/${user.id}`"
+        :keywords="(getKeywords) => getKeywords(
+          user.email,
+          user.social && user.social.handle,
+          user.organizations.map(org => [
+            org.name,
+            org.locations.map(location => [
+              location.city,
+              location.state
+            ])
+          ])
+        )"
       >
-        {users.map((user) => (
-          <Option
-            label={user.name}
-            sublabel={user.email}
-            img={{ src: user.avatar, alt: `${user.name} profile picture` }}
-            href={`/users/${user.id}`}
-            keywords={(getKeywords) =>
-              getKeywords(
-                user.email,
-                user.social && user.social.handle,
-                user.organizations.map((org) => [
-                  org.name,
-                  org.locations.map((location) => [
-                    location.city,
-                    location.state,
-                  ]),
-                ])
-              )
-            }
-            key={user.id}
-          >
-            <Detail label="Joined" value={user.joined} />
-            {user.organizations.length && (
-              <Detail
-                label="Organizations"
-                value={<Organizations items={user.organizations} />}
-              />
-            )}
-          </Option>
-        ))}
-      </Search>
-    </>
-  );
+        <Detail label="Joined" :value="user.joined" />
+        <Detail
+          v-if="user.organizations.length"
+          label="Organizations"
+          :value="$options.components.Organizations({ items: user.organizations })"
+        />
+      </Option>
+    </Search>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue';
+import { Search, Option, Detail } from 'searchpal';
+
+export default {
+  components: {
+    Search,
+    Option,
+    Detail
+  },
+  props: ['users'],
+  setup() {
+    const open = ref(false);
+    
+    const link = ({ href, children }) => h('a', { href }, children);
+
+    return {
+      open,
+      link
+    };
+  }
 };
+</script>
 ```
 
 ## Custom Search
